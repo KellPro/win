@@ -76,6 +76,7 @@ var (
 	globalLock                         uintptr
 	globalUnlock                       uintptr
 	moveMemory                         uintptr
+	zeroMemory                         uintptr
 	mulDiv                             uintptr
 	setLastError                       uintptr
 	systemTimeToFileTime               uintptr
@@ -140,6 +141,7 @@ func init() {
 	globalLock = MustGetProcAddress(libkernel32, "GlobalLock")
 	globalUnlock = MustGetProcAddress(libkernel32, "GlobalUnlock")
 	moveMemory = MustGetProcAddress(libkernel32, "RtlMoveMemory")
+	zeroMemory = MustGetProcAddress(libkernel32, "RtlZeroMemory")
 	mulDiv = MustGetProcAddress(libkernel32, "MulDiv")
 	setLastError = MustGetProcAddress(libkernel32, "SetLastError")
 	systemTimeToFileTime = MustGetProcAddress(libkernel32, "SystemTimeToFileTime")
@@ -323,6 +325,13 @@ func MoveMemory(destination, source unsafe.Pointer, length uintptr) {
 		uintptr(unsafe.Pointer(destination)),
 		uintptr(source),
 		uintptr(length))
+}
+
+func ZeroMemory(destination unsafe.Pointer, length uintptr) {
+	syscall.Syscall(zeroMemory, 2,
+		uintptr(unsafe.Pointer(destination)),
+		uintptr(length),
+		0)
 }
 
 func MulDiv(nNumber, nNumerator, nDenominator int32) int32 {
