@@ -222,7 +222,7 @@ type PRINTDLGEX struct {
 	NCopies             uint32
 	HInstance           HINSTANCE
 	LpPrintTemplateName *uint16
-	LpCallback          LPUNKNOWN
+	LpCallback          uintptr
 	NPropertyPages      uint32
 	LphPropertyPages    *HPROPSHEETPAGE
 	NStartPage          uint32

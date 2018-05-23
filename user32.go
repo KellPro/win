@@ -1542,6 +1542,7 @@ var (
 	beginDeferWindowPos        uintptr
 	beginPaint                 uintptr
 	callWindowProc             uintptr
+	checkDlgButton             uintptr
 	clientToScreen             uintptr
 	closeClipboard             uintptr
 	createDialogParam          uintptr
@@ -1596,6 +1597,7 @@ var (
 	isChild                    uintptr
 	isClipboardFormatAvailable uintptr
 	isDialogMessage            uintptr
+	isDlgButtonChecked         uintptr
 	isWindowEnabled            uintptr
 	isWindowVisible            uintptr
 	killTimer                  uintptr
@@ -1663,6 +1665,7 @@ func init() {
 	beginDeferWindowPos = MustGetProcAddress(libuser32, "BeginDeferWindowPos")
 	beginPaint = MustGetProcAddress(libuser32, "BeginPaint")
 	callWindowProc = MustGetProcAddress(libuser32, "CallWindowProcW")
+	checkDlgButton = MustGetProcAddress(libuser32, "CheckDlgButton")
 	clientToScreen = MustGetProcAddress(libuser32, "ClientToScreen")
 	closeClipboard = MustGetProcAddress(libuser32, "CloseClipboard")
 	createDialogParam = MustGetProcAddress(libuser32, "CreateDialogParamW")
@@ -1722,6 +1725,7 @@ func init() {
 	isChild = MustGetProcAddress(libuser32, "IsChild")
 	isClipboardFormatAvailable = MustGetProcAddress(libuser32, "IsClipboardFormatAvailable")
 	isDialogMessage = MustGetProcAddress(libuser32, "IsDialogMessageW")
+	isDlgButtonChecked = MustGetProcAddress(libuser32, "IsDlgButtonChecked")
 	isWindowEnabled = MustGetProcAddress(libuser32, "IsWindowEnabled")
 	isWindowVisible = MustGetProcAddress(libuser32, "IsWindowVisible")
 	killTimer = MustGetProcAddress(libuser32, "KillTimer")
@@ -1840,6 +1844,15 @@ func CallWindowProc(lpPrevWndFunc uintptr, hWnd HWND, Msg uint32, wParam, lParam
 		0)
 
 	return ret
+}
+
+func CheckDlgButton(hDlg HWND, nIDButton uint32, uCheck uint32) bool {
+	ret, _, _ := syscall.Syscall(checkDlgButton, 3,
+		uintptr(hDlg),
+		uintptr(nIDButton),
+		uintptr(uCheck))
+
+	return ret != 0
 }
 
 func ClientToScreen(hwnd HWND, lpPoint *POINT) bool {
@@ -2369,6 +2382,15 @@ func IsDialogMessage(hWnd HWND, msg *MSG) bool {
 		0)
 
 	return ret != 0
+}
+
+func IsDlgButtonChecked(hDlg HWND, nIDButton uint32) int32 {
+	ret, _, _ := syscall.Syscall(isDlgButtonChecked, 2,
+		uintptr(hDlg),
+		uintptr(nIDButton),
+		0)
+
+	return int32(ret)
 }
 
 func IsWindowEnabled(hWnd HWND) bool {
