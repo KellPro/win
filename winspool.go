@@ -31,6 +31,12 @@ const (
 	PRINTER_ALL_ACCESS            = (STANDARD_RIGHTS_REQUIRED | PRINTER_ACCESS_ADMINISTER | PRINTER_ACCESS_USE)
 )
 
+type DOC_INFO_1 struct {
+	PDocName    *uint16
+	POutputFile *uint16
+	PDatatype   *uint16
+}
+
 type PRINTER_INFO_4 struct {
 	PPrinterName *uint16
 	PServerName  *uint16
@@ -54,6 +60,11 @@ var (
 	getDefaultPrinter  uintptr
 	openPrinter        uintptr
 	closePrinter       uintptr
+	startDocPrinter    uintptr
+	endDocPrinter      uintptr
+	startPagePrinter   uintptr
+	endPagePrinter     uintptr
+	writePrinter       uintptr
 )
 
 func init() {
@@ -67,6 +78,11 @@ func init() {
 	getDefaultPrinter = MustGetProcAddress(libwinspool, "GetDefaultPrinterW")
 	openPrinter = MustGetProcAddress(libwinspool, "OpenPrinterW")
 	closePrinter = MustGetProcAddress(libwinspool, "ClosePrinter")
+	startDocPrinter = MustGetProcAddress(libwinspool, "StartDocPrinterW")
+	endDocPrinter = MustGetProcAddress(libwinspool, "EndDocPrinter")
+	startPagePrinter = MustGetProcAddress(libwinspool, "StartPagePrinter")
+	endPagePrinter = MustGetProcAddress(libwinspool, "EndPagePrinter")
+	writePrinter = MustGetProcAddress(libwinspool, "WritePrinter")
 }
 
 func DeviceCapabilities(pDevice, pPort *uint16, fwCapability uint16, pOutput *uint16, pDevMode *DEVMODE) uint32 {
@@ -126,9 +142,51 @@ func OpenPrinter(pPrinterName *uint16, phPrinter *HANDLE, pDefault *PRINTER_DEFA
 	return ret != 0
 }
 
-func ClosePrinter(phPrinter *HANDLE) bool {
+func ClosePrinter(hPrinter HANDLE) bool {
 	ret, _, _ := syscall.Syscall(closePrinter, 1,
-		uintptr(unsafe.Pointer(phPrinter)), 0, 0)
+		uintptr(hPrinter), 0, 0)
+
+	return ret != 0
+}
+
+func StartDocPrinter(hPrinter HANDLE, level uint32, pDocInfo *DOC_INFO_1) uint32 {
+	ret, _, _ := syscall.Syscall(startDocPrinter, 3,
+		uintptr(hPrinter),
+		uintptr(level),
+		uintptr(unsafe.Pointer(pDocInfo)))
+
+	return uint32(ret)
+}
+
+func EndDocPrinter(hPrinter HANDLE) bool {
+	ret, _, _ := syscall.Syscall(endDocPrinter, 1,
+		uintptr(hPrinter), 0, 0)
+
+	return ret != 0
+}
+
+func StartPagePrinter(hPrinter HANDLE) bool {
+	ret, _, _ := syscall.Syscall(startPagePrinter, 1,
+		uintptr(hPrinter), 0, 0)
+
+	return ret != 0
+}
+
+func EndPagePrinter(hPrinter HANDLE) bool {
+	ret, _, _ := syscall.Syscall(endPagePrinter, 1,
+		uintptr(hPrinter), 0, 0)
+
+	return ret != 0
+}
+
+func WritePrinter(hPrinter HANDLE, pBuf *byte, cbBuf uint32, pcWritten *uint32) bool {
+	ret, _, _ := syscall.Syscall6(writePrinter, 4,
+		uintptr(hPrinter),
+		uintptr(unsafe.Pointer(pBuf)),
+		uintptr(cbBuf),
+		uintptr(unsafe.Pointer(pcWritten)),
+		0,
+		0)
 
 	return ret != 0
 }
