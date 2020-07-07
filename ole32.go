@@ -417,6 +417,13 @@ type COSERVERINFO struct {
 	dwReserved2 uint32
 }
 
+const (
+	COINIT_MULTITHREADED     = 0x0
+	COINIT_APARTMENTTHREADED = 0x2
+	COINIT_DISABLE_OLE1DDE   = 0x4
+	COINIT_SPEED_OVER_MEMORY = 0x8
+)
+
 var (
 	// Library
 	libole32 uintptr
@@ -425,6 +432,8 @@ var (
 	coCreateInstance      uintptr
 	coGetClassObject      uintptr
 	coTaskMemFree         uintptr
+	coInitializeEx        uintptr
+	coUninitialize        uintptr
 	oleInitialize         uintptr
 	oleSetContainedObject uintptr
 	oleUninitialize       uintptr
@@ -438,6 +447,8 @@ func init() {
 	coCreateInstance = MustGetProcAddress(libole32, "CoCreateInstance")
 	coGetClassObject = MustGetProcAddress(libole32, "CoGetClassObject")
 	coTaskMemFree = MustGetProcAddress(libole32, "CoTaskMemFree")
+	coInitializeEx = MustGetProcAddress(libole32, "CoInitializeEx")
+	coUninitialize = MustGetProcAddress(libole32, "CoUninitialize")
 	oleInitialize = MustGetProcAddress(libole32, "OleInitialize")
 	oleSetContainedObject = MustGetProcAddress(libole32, "OleSetContainedObject")
 	oleUninitialize = MustGetProcAddress(libole32, "OleUninitialize")
@@ -470,6 +481,22 @@ func CoGetClassObject(rclsid REFCLSID, dwClsContext uint32, pServerInfo *COSERVE
 func CoTaskMemFree(pv uintptr) {
 	syscall.Syscall(coTaskMemFree, 1,
 		pv,
+		0,
+		0)
+}
+
+func CoInitializeEx(pvReserved uintptr, dwCoInit uint32) HRESULT {
+	ret, _, _ := syscall.Syscall(coInitializeEx, 2,
+		pvReserved,
+		uintptr(dwCoInit),
+		0)
+
+	return HRESULT(ret)
+}
+
+func CoUninitialize() {
+	syscall.Syscall(coUninitialize, 0,
+		0,
 		0,
 		0)
 }
