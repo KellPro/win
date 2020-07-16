@@ -170,6 +170,14 @@ func (obj *IFileOpenDialog) SetOptions(fos int) HRESULT {
 	return HRESULT(ret)
 }
 
+func (obj *IFileOpenDialog) SetFolder(ppsi *IShellItem) HRESULT {
+	ret, _, _ := syscall.Syscall(obj.LpVtbl.SetFolder, 2,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(unsafe.Pointer(ppsi)),
+		0)
+	return HRESULT(ret)
+}
+
 func (obj *IFileOpenDialog) GetResult(ppsi **IShellItem) HRESULT {
 	ret, _, _ := syscall.Syscall(obj.LpVtbl.GetResult, 2,
 		uintptr(unsafe.Pointer(obj)),

@@ -296,16 +296,17 @@ var (
 	libshell32 uintptr
 
 	// Functions
-	dragAcceptFiles        uintptr
-	dragFinish             uintptr
-	dragQueryFile          uintptr
-	shBrowseForFolder      uintptr
-	shGetFileInfo          uintptr
-	shGetPathFromIDList    uintptr
-	shGetSpecialFolderPath uintptr
-	shParseDisplayName     uintptr
-	shGetStockIconInfo     uintptr
-	shell_NotifyIcon       uintptr
+	dragAcceptFiles             uintptr
+	dragFinish                  uintptr
+	dragQueryFile               uintptr
+	shBrowseForFolder           uintptr
+	shGetFileInfo               uintptr
+	shGetPathFromIDList         uintptr
+	shGetSpecialFolderPath      uintptr
+	shParseDisplayName          uintptr
+	shGetStockIconInfo          uintptr
+	shell_NotifyIcon            uintptr
+	shCreateItemFromParsingName uintptr
 )
 
 func init() {
@@ -323,6 +324,7 @@ func init() {
 	shGetStockIconInfo = MaybeGetProcAddress(libshell32, "SHGetStockIconInfo")
 	shell_NotifyIcon = MustGetProcAddress(libshell32, "Shell_NotifyIconW")
 	shParseDisplayName = MustGetProcAddress(libshell32, "SHParseDisplayName")
+	shCreateItemFromParsingName = MustGetProcAddress(libshell32, "SHCreateItemFromParsingName")
 }
 
 func DragAcceptFiles(hWnd HWND, fAccept bool) bool {
@@ -426,4 +428,15 @@ func Shell_NotifyIcon(dwMessage uint32, lpdata *NOTIFYICONDATA) bool {
 		0)
 
 	return ret != 0
+}
+
+func SHCreateItemFromParsingName(pszPath *uint16, pbc uintptr, riid REFIID, ppv uintptr) HRESULT {
+	ret, _, _ := syscall.Syscall6(shCreateItemFromParsingName, 4,
+		uintptr(unsafe.Pointer(pszPath)),
+		pbc,
+		uintptr(unsafe.Pointer(riid)),
+		ppv,
+		0,
+		0)
+	return HRESULT(ret)
 }
