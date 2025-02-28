@@ -1540,6 +1540,7 @@ var (
 	addClipboardFormatListener uintptr
 	adjustWindowRect           uintptr
 	animateWindow              uintptr
+	attachThreadInput          uintptr
 	beginDeferWindowPos        uintptr
 	beginPaint                 uintptr
 	callWindowProc             uintptr
@@ -1568,6 +1569,7 @@ var (
 	endDialog                  uintptr
 	endPaint                   uintptr
 	enumChildWindows           uintptr
+	enumThreadWindows          uintptr
 	findWindow                 uintptr
 	findWindowEx               uintptr
 	getActiveWindow            uintptr
@@ -1594,6 +1596,7 @@ var (
 	getWindowLongPtr           uintptr
 	getWindowPlacement         uintptr
 	getWindowRect              uintptr
+	getWindowThreadProcessId   uintptr
 	insertMenuItem             uintptr
 	invalidateRect             uintptr
 	isChild                    uintptr
@@ -1664,6 +1667,7 @@ func init() {
 	addClipboardFormatListener, _ = syscall.GetProcAddress(syscall.Handle(libuser32), "AddClipboardFormatListener")
 	adjustWindowRect = MustGetProcAddress(libuser32, "AdjustWindowRect")
 	animateWindow = MustGetProcAddress(libuser32, "AnimateWindow")
+	attachThreadInput = MustGetProcAddress(libuser32, "AttachThreadInput")
 	beginDeferWindowPos = MustGetProcAddress(libuser32, "BeginDeferWindowPos")
 	beginPaint = MustGetProcAddress(libuser32, "BeginPaint")
 	callWindowProc = MustGetProcAddress(libuser32, "CallWindowProcW")
@@ -1692,6 +1696,7 @@ func init() {
 	endDialog = MustGetProcAddress(libuser32, "EndDialog")
 	endPaint = MustGetProcAddress(libuser32, "EndPaint")
 	enumChildWindows = MustGetProcAddress(libuser32, "EnumChildWindows")
+	enumThreadWindows = MustGetProcAddress(libuser32, "EnumThreadWindows")
 	findWindow = MustGetProcAddress(libuser32, "FindWindowW")
 	findWindowEx = MustGetProcAddress(libuser32, "FindWindowExW")
 	getActiveWindow = MustGetProcAddress(libuser32, "GetActiveWindow")
@@ -1723,6 +1728,7 @@ func init() {
 	}
 	getWindowPlacement = MustGetProcAddress(libuser32, "GetWindowPlacement")
 	getWindowRect = MustGetProcAddress(libuser32, "GetWindowRect")
+	getWindowThreadProcessId = MustGetProcAddress(libuser32, "GetWindowThreadProcessId")
 	insertMenuItem = MustGetProcAddress(libuser32, "InsertMenuItemW")
 	invalidateRect = MustGetProcAddress(libuser32, "InvalidateRect")
 	isChild = MustGetProcAddress(libuser32, "IsChild")
@@ -1815,6 +1821,15 @@ func AnimateWindow(hwnd HWND, dwTime, dwFlags uint32) bool {
 		uintptr(hwnd),
 		uintptr(dwTime),
 		uintptr(dwFlags))
+
+	return ret != 0
+}
+
+func AttachThreadInput(idAttach, idAttachTo uint32, fAttach bool) bool {
+	ret, _, _ := syscall.Syscall(attachThreadInput, 3,
+		uintptr(idAttach),
+		uintptr(idAttachTo),
+		uintptr(BoolToBOOL(fAttach)))
 
 	return ret != 0
 }
@@ -2108,6 +2123,15 @@ func EnumChildWindows(hWndParent HWND, lpEnumFunc, lParam uintptr) bool {
 	return ret != 0
 }
 
+func EnumThreadWindows(dwThreadId uint32, lpEnumFunc, lParam uintptr) bool {
+	ret, _, _ := syscall.Syscall(enumChildWindows, 3,
+		uintptr(hWndParent),
+		lpEnumFunc,
+		lParam)
+
+	return ret != 0
+}
+
 func FindWindow(lpClassName, lpWindowName *uint16) HWND {
 	ret, _, _ := syscall.Syscall(findWindow, 2,
 		uintptr(unsafe.Pointer(lpClassName)),
@@ -2349,6 +2373,15 @@ func GetWindowRect(hWnd HWND, rect *RECT) bool {
 		0)
 
 	return ret != 0
+}
+
+func GetWindowThreadProcessId(hWnd HWND, lpdwProcessId *uint32) uint32 {
+	ret, _, _ := syscall.Syscall(getWindowThreadProcessId, 2,
+		uintptr(hWnd),
+		uintptr(unsafe.Pointer(lpdwProcessId)),
+		0)
+
+	return uint32(ret)
 }
 
 func InsertMenuItem(hMenu HMENU, uItem uint32, fByPosition bool, lpmii *MENUITEMINFO) bool {
