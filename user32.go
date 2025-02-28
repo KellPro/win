@@ -2125,7 +2125,7 @@ func EnumChildWindows(hWndParent HWND, lpEnumFunc, lParam uintptr) bool {
 
 func EnumThreadWindows(dwThreadId uint32, lpEnumFunc, lParam uintptr) bool {
 	ret, _, _ := syscall.Syscall(enumChildWindows, 3,
-		uintptr(hWndParent),
+		uintptr(dwThreadId),
 		lpEnumFunc,
 		lParam)
 
