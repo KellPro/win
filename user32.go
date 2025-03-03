@@ -2124,7 +2124,7 @@ func EnumChildWindows(hWndParent HWND, lpEnumFunc, lParam uintptr) bool {
 }
 
 func EnumThreadWindows(dwThreadId uint32, lpEnumFunc, lParam uintptr) bool {
-	ret, _, _ := syscall.Syscall(enumChildWindows, 3,
+	ret, _, _ := syscall.Syscall(enumThreadWindows, 3,
 		uintptr(dwThreadId),
 		lpEnumFunc,
 		lParam)
@@ -2142,7 +2142,7 @@ func FindWindow(lpClassName, lpWindowName *uint16) HWND {
 }
 
 func FindWindowEx(hWndParent HWND, hWndChildAfter HWND, lpszClass, lpszWindow *uint16) HWND {
-	ret, _, _ := syscall.Syscall6(findWindow, 4,
+	ret, _, _ := syscall.Syscall6(findWindowEx, 4,
 		uintptr(hWndParent),
 		uintptr(hWndChildAfter),
 		uintptr(unsafe.Pointer(lpszClass)),
